@@ -1,0 +1,83 @@
+---
+title: "Exercises Assignment #6: HOMEWORK"
+author: "Julia Kwiecinska"
+format: html
+editor: visual
+---
+
+# Libraries
+
+Here I load libraries I will use in this file.
+
+```{r}
+library(rmarkdown)
+library(tidyr)
+library(dplyr)
+```
+
+# Data
+
+For this homework I will be working on **iris** dataset.
+
+## Load iris dataset
+
+Here I load a dataset called "iris" with measurements on 3 iris species.
+
+```{r echo=TRUE}
+data("iris")
+
+paged_table(iris)
+```
+
+## Transform it to longer
+
+Here I transform iris dataset to longer by using tidyr::pivot_longer() to get 3 columns - Species \| Trait \| Size.
+
+```{r}
+iris_long <- iris %>% 
+  tidyr::pivot_longer(cols=matches("Sepal|Petal"), names_to = "Trait", values_to = "Size") 
+
+iris_long
+```
+
+# Questions!
+
+## What is the mean length and width of the sepal and petal of each species?
+
+After grouping by Species and Trait I calculate the mean for each trait (Petal.Length, Petal.Width, Sepal.Length, Sepal.Width) for each Species.
+
+```{r echo=TRUE}
+iris_long1 <- iris_long %>%
+  group_by(Species, Trait) %>% 
+  summarise(MeanIRIS = mean(Size)) 
+
+iris_long1
+```
+
+## What is the largest and widest, petal and sepal, of virginica and versicolor species?
+
+Here I filter two of the species by using dplyr::filter(). After that I group by Species and Trait as before and summarise looking for max size in each of traits.
+
+```{r echo=TRUE}
+iris_long2 <- iris_long %>% 
+  dplyr::filter(Species %in% c("virginica", "versicolor")) %>% 
+  group_by(Species, Trait) %>% 
+  summarise(MaxSize = max(Size)) 
+
+iris_long2
+```
+
+## For each species, for sepal and petal, width and length, how many observations are above the mean?
+
+Here I'm using left_join() to join the mean values to the original long dataset based on species and trait. Then I count the observations above the mean for each species, for sepal and petal width and length.
+
+```{r echo=TRUE}
+
+iris_above_mean <- iris_long %>%
+  left_join(iris_long1, by = c("Species", "Trait")) %>%
+  group_by(Species, Trait) %>%
+  summarise(obs_above_mean = sum(Size > MeanIRIS))
+
+iris_above_mean
+
+```
